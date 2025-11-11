@@ -1,0 +1,42 @@
+# CI — run unit tests and upload surefire reports
+name: CI — Unit tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Print java version
+        run: java -version
+
+      - name: Build and run tests
+        run: |
+          cd java_code
+          mvn -B test
+
+      - name: Upload surefire reports
+        if: always()                    # run even if tests/steps failed
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-reports
+          path: java_code/target/surefire-reports/**   # pick up surefire files
